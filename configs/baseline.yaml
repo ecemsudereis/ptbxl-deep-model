@@ -1,0 +1,42 @@
+# Baseline config — full model (6 blocks). Person C wires this into the trainer.
+# Ablation variants take this as the base and change a single flag.
+
+experiment_name: baseline_full
+
+# --- Model ablation flags (CONTRACT §5) ---
+model:
+  use_dae: true
+  use_residual: true
+  rnn_type: lstm          # lstm | gru
+  bidirectional: true
+  use_attention: true
+  use_vae: true
+  cnn_base_ch: 64
+  rnn_hidden: 128
+
+# --- Training (W5 optimizer + LR) ---
+train:
+  epochs: 50
+  batch_size: 64
+  optimizer: adam         # adam | rmsprop | sgd
+  lr: 0.001
+  lr_schedule: cosine     # none | linear | cosine
+  device: cuda
+
+# --- Regularization arsenal (W4) ---
+regularization:
+  weight_decay: 0.0001    # L2
+  l1_lambda: 0.0          # L1
+  dropout: 0.5
+  label_smoothing: 0.0
+  early_stop_patience: 8
+
+# --- Auxiliary losses ---
+aux:
+  vae_beta: 1.0           # KL weight (W8)
+  dae_pretrain_epochs: 5  # 0 = no pretraining
+
+# --- Data ---
+data:
+  sampling_rate: 100
+  dummy: false            # can be set true during parallel dev

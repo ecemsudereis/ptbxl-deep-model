@@ -1,0 +1,31 @@
+# Raw PTB-XL data is NOT committed (~2 GB)
+data/raw/
+data/ptbxl/
+*.dat
+*.hea
+*.csv
+!configs/*.csv
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# Training outputs
+checkpoints/
+*.pt
+*.pth
+runs/
+logs/
+
+# Raw ablation outputs (summary tables stay in the repo)
+ablation/results/raw/
+
+# OS
+.DS_Store
+Thumbs.db
