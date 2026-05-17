@@ -1,49 +1,91 @@
-"""Download the PTB-XL dataset (Person A).
+"""Download / locate the PTB-XL dataset.
 
 PTB-XL is openly available via PhysioNet:
     https://physionet.org/content/ptb-xl/
 
-Size note:
-    - 100 Hz version (~1.7 GB)  ← USE THIS
-    - 500 Hz version (~3 GB)    ← not needed
+PhysioNet's own server was extremely slow, so we use the same dataset
+mirrored on Kaggle (https://www.kaggle.com/datasets/khyeh0719/ptb-xl-dataset),
+downloaded manually as 'archive.zip' (~1.7 GB). The Kaggle mirror is
+PTB-XL v1.0.1 -- only a few duplicate records differ from v1.0.3; the
+folds and benchmark structure are identical, so it is fine for us.
+
+Workflow:
+    1. Download archive.zip from Kaggle (done manually in the browser).
+    2. Put archive.zip into data/raw/.
+    3. Run: python -m data.download   -> it extracts + verifies.
+
+Raw data lands under data/raw/ and is in .gitignore (NOT committed).
 
 Citation (for the paper):
     Wagner, P., Strodthoff, N., Bousseljot, RD. et al.
     "PTB-XL, a large publicly available electrocardiography dataset."
     Scientific Data 7, 154 (2020).
-
-This file is only a SKELETON. The code is filled in later.
-Raw data lands under data/raw/ and is in .gitignore (NOT committed).
 """
 
 from pathlib import Path
+import sys
+import zipfile
 
-# PhysioNet PTB-XL root URL (100 Hz). Person A verifies.
-PTBXL_URL = "https://physionet.org/static/published-projects/ptb-xl/"
 RAW_DIR = Path(__file__).parent / "raw"
+ZIP_NAME = "archive.zip"   # the file Kaggle gives you
 
 
-def download_ptbxl(target_dir: Path = RAW_DIR, sampling_rate: int = 100) -> Path:
-    """Download PTB-XL and extract it under target_dir.
+def find_data_root(raw_dir: Path = RAW_DIR):
+    """Return the folder that directly contains ptbxl_database.csv.
 
-    Args:
-        target_dir: Folder for the raw data (default data/raw/).
-        sampling_rate: 100 (default) or 500.
+    The Kaggle zip extracts into a versioned subfolder
+    (e.g. ptb-xl-a-large-...-1.0.1/), so the CSVs may live either at
+    data/raw/ or in that nested folder. preprocess.py reuses this
+    helper so it never has to care which.
+    """
+    if (raw_dir / "ptbxl_database.csv").exists():
+        return raw_dir
+    # Search one level down for any folder that holds the CSV.
+    if raw_dir.exists():
+        for child in raw_dir.iterdir():
+            if child.is_dir() and (child / "ptbxl_database.csv").exists():
+                return child
+    return None
+
+
+def download_ptbxl(target_dir: Path = RAW_DIR) -> Path:
+    """Extract PTB-XL from data/raw/archive.zip and verify it.
 
     Returns:
-        Path to the downloaded data root.
-
-    Expected structure (after download):
-        data/raw/
-        ├── ptbxl_database.csv      # meta + strat_fold + scp_codes
-        ├── scp_statements.csv      # SCP code → diagnostic superclass map
-        └── records100/             # WFDB .dat/.hea files (100 Hz)
+        Path to the folder that directly contains ptbxl_database.csv.
     """
-    # TODO(A): download via wget/requests + unzip.
-    #          Prefer `wfdb.io.dl_database` or the direct PhysioNet link.
-    raise NotImplementedError("Person A: download logic goes here.")
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    # Idempotent: if already extracted, do nothing.
+    root = find_data_root(target_dir)
+    if root is not None:
+        print(f"PTB-XL already extracted at: {root} -- skipping.")
+        return root
+
+    zip_path = target_dir / ZIP_NAME
+    if not zip_path.exists():
+        print("archive.zip not found.")
+        print("STEPS:")
+        print("  1. Download it from Kaggle (you already did this):")
+        print("     https://www.kaggle.com/datasets/khyeh0719/ptb-xl-dataset")
+        print(f"  2. Move 'archive.zip' into: {target_dir.resolve()}")
+        print("  3. Re-run: python -m data.download")
+        sys.exit(1)
+
+    print("Extracting archive.zip (~22k files, takes a few minutes)...")
+    with zipfile.ZipFile(zip_path) as zf:
+        zf.extractall(target_dir)
+
+    root = find_data_root(target_dir)
+    if root is None:
+        print("Extracted, but ptbxl_database.csv not found -- bad zip?")
+        sys.exit(1)
+
+    # Free ~1.7 GB: the extracted data is all we need from here on.
+    zip_path.unlink(missing_ok=True)
+    print(f"Done. Data root: {root}")
+    return root
 
 
 if __name__ == "__main__":
-    print("download.py — skeleton. Person A fills this in.")
-    print(f"Target dir: {RAW_DIR}")
+    download_ptbxl()

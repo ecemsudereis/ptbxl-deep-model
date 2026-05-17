@@ -1,5 +1,6 @@
 # Raw PTB-XL data is NOT committed (~2 GB)
 data/raw/
+data/processed/
 data/ptbxl/
 *.dat
 *.hea
