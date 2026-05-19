@@ -1,0 +1,2 @@
+name,macro_auc,macro_f1,auc_drop,f1_drop,best_epoch,override
+no_attention,0.4199404761904762,0.24242424242424238,0.0,0.0,1,"{""use_attention"": false}"
