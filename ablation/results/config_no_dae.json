@@ -1,0 +1,24 @@
+{
+  "epochs": 25,
+  "lr": 0.001,
+  "batch_size": 16,
+  "optimizer": "adam",
+  "weight_decay": 0.0001,
+  "l1_lambda": 0.0,
+  "label_smoothing": 0.0,
+  "vae_beta": 1.0,
+  "lr_schedule": "cosine",
+  "early_stop_patience": 6,
+  "dae_pretrain_epochs": 0,
+  "device": "cuda",
+  "flags": {
+    "use_dae": false,
+    "use_residual": true,
+    "rnn_type": "lstm",
+    "bidirectional": true,
+    "use_attention": true,
+    "use_vae": true,
+    "cnn_base_ch": 64,
+    "rnn_hidden": 128
+  }
+}
